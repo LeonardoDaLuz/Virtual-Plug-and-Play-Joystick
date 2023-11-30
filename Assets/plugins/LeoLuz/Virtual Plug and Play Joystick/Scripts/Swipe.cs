@@ -61,7 +61,10 @@ namespace LeoLuz.PlugAndPlayJoystick
             if (pressed)
             {
                 Vector2 ResultPosition;
-
+#if UNITY_EDITOR || UNITY_STANDALONE
+                ResultPosition = (Vector2)UnityEngine.Input.mousePosition - StartPosition;
+#endif
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IPHONE || UNITY_IOS || UNITY_WP_8 || UNITY_WP_8_1 || UNITY_WEBGL)
                 if (Input.touchCount > 0)
                 {
                     Touch AnalogTouch = Input.GetTouch(Input.touchCount-1);
@@ -71,7 +74,7 @@ namespace LeoLuz.PlugAndPlayJoystick
                 {
                     return; 
                 }
-
+#endif
                 Input.PressButtonMobile(SwipeAxisHorizontal);
                 Input.PressButtonMobile(SwipeAxisVertical);
                 Input.SetAxisMobile(SwipeAxisHorizontal, ResultPosition.x);
@@ -91,20 +94,27 @@ namespace LeoLuz.PlugAndPlayJoystick
             Input.SetAxisMobile(SwipeAxisVertical, 0f);
             pressed = true;
 
-
+#if UNITY_EDITOR || UNITY_STANDALONE
+            StartPosition = UnityEngine.Input.mousePosition;
+#endif
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IPHONE || UNITY_IOS || UNITY_WP_8 || UNITY_WP_8_1 || UNITY_WEBGL)
                 if (Input.touchCount > 0)
                 {
                     Touch AnalogTouch = Input.GetTouch(Input.touchCount-1);
                         //verifica touchs
                     StartPosition = (Vector2)AnalogTouch.position - StartPosition;
                 }
+#endif
         }
 
         public virtual void OnPointerUp(PointerEventData data)
         {
             pressed = false;
             Vector2 ResultPosition;
-
+#if UNITY_EDITOR || UNITY_STANDALONE
+            ResultPosition = (Vector2)UnityEngine.Input.mousePosition - StartPosition;
+#endif
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IPHONE || UNITY_IOS || UNITY_WP_8 || UNITY_WP_8_1 || UNITY_WEBGL)
             if (Input.touchCount > 0)
             {
                 Touch AnalogTouch = Input.GetTouch(Input.touchCount-1);
@@ -114,7 +124,7 @@ namespace LeoLuz.PlugAndPlayJoystick
             {
                 return;
             }
-
+#endif
             this.AxisResult = ResultPosition;
             Input.PressButtonUpMobile(SwipeAxisHorizontal);
             Input.PressButtonUpMobile(SwipeAxisVertical);

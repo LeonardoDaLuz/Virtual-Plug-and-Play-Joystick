@@ -89,10 +89,12 @@ namespace LeoLuz.PlugAndPlayJoystick
             }
         }
 #endif
+       
 
         public override void Start()
         {
             base.Start();
+
             rectTransform = GetComponent<RectTransform>();
             imageUI = GetComponent<Image>();
             if (rectTransform == null)
@@ -111,14 +113,11 @@ namespace LeoLuz.PlugAndPlayJoystick
             AnchoredAreaBounds = new Bounds(new Vector2(NormalizedAnchoredAreaBounds.center.x * CanvasRect.sizeDelta.x, NormalizedAnchoredAreaBounds.center.y * CanvasRect.sizeDelta.y)
                 , new Vector2(NormalizedAnchoredAreaBounds.size.x * CanvasRect.sizeDelta.x, NormalizedAnchoredAreaBounds.size.y * CanvasRect.sizeDelta.y));
 
-            if (AnalogicStartAnchoredPosition == Vector2.zero)
-            {
-                AnalogicStartAnchoredPosition = rectTransform.anchoredPosition;
-            }
-            else
-            {
-                rectTransform.anchoredPosition = AnalogicStartAnchoredPosition;
-            }
+			if (AnalogicStartAnchoredPosition == Vector2.zero) {
+				AnalogicStartAnchoredPosition = rectTransform.anchoredPosition;
+			} else {
+				rectTransform.anchoredPosition = AnalogicStartAnchoredPosition;
+			}
 
             AnalogicStartPosition = transform.position;
             ScreenPixels = new Vector2(Screen.width, Screen.height);
@@ -156,19 +155,16 @@ namespace LeoLuz.PlugAndPlayJoystick
         }
 
 
-        void RecalculateLayout()
-        {
-            Debug.Log("Recalculating the layout");
-            Start();
-        }
+		void RecalculateLayout() {
+			Debug.Log ("Recalculating the layout");
+			Start();
+		}
         void Update()
         {
-           // if (!Application.isMobilePlatform) return;
+			if (_devOrientation != UnityEngine.Input.deviceOrientation || ScreenPixels.x != Screen.width || ScreenPixels.y != Screen.height)
+				RecalculateLayout ();
 
-            if (_devOrientation != UnityEngine.Input.deviceOrientation || ScreenPixels.x != Screen.width || ScreenPixels.y != Screen.height)
-                RecalculateLayout();
-
-
+            
             lastFrameNormalizedAxis = NormalizedAxis;
 
             //SIMULATED MOBILE VIRTUAL JOYSTICK KNOB ON EDITOR AND EFFETIVE MOBILE VIRTUAL JOYSTICK KNOB
@@ -296,20 +292,35 @@ namespace LeoLuz.PlugAndPlayJoystick
 
         int GetAnalogFingerIDInsideArea()
         {
+            
+#if UNITY_EDITOR || UNITY_STANDALONE
+
+            if ((UnityEngine.Input.GetMouseButtonDown(0) || UnityEngine.Input.GetMouseButtonUp(0) || UnityEngine.Input.GetMouseButton(0)) && IsInsideArea(UnityEngine.Input.mousePosition))
+                return 0;
+            else
+                return -1;
+#endif
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IPHONE || UNITY_IOS || UNITY_WP_8 || UNITY_WP_8_1 || UNITY_WEBGL)
             for (int i = 0; i < Input.touchCount; i++)
             {
                 if (IsInsideArea(Input.GetTouch(i).position))
                     return i;
             }
             return -1;
+#endif
         }
 
         int GetAnalogTouchFingerIDInsideArea(int id)
         {
-            if (id == -1)
+#if UNITY_EDITOR || UNITY_STANDALONE
+            return id;
+#endif
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IPHONE || UNITY_IOS || UNITY_WP_8 || UNITY_WP_8_1 || UNITY_WEBGL)
+            if(id==-1)
                 return -1;
 
-            return Input.GetTouch(id).fingerId;
+            return Input.GetTouch(id).fingerId;            
+#endif
         }
     }
 
@@ -321,27 +332,43 @@ namespace LeoLuz.PlugAndPlayJoystick
         {
             get
             {
+#if UNITY_EDITOR || UNITY_STANDALONE
+                return (UnityEngine.Input.GetMouseButtonDown(0) || UnityEngine.Input.GetMouseButtonUp(0) || UnityEngine.Input.GetMouseButton(0)) ? 1 : 0;
+#endif
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IPHONE || UNITY_IOS || UNITY_WP_8 || UNITY_WP_8_1 || UNITY_WEBGL)
                 return Input.touchCount;
+#endif
+
             }
         }
 
         public static Touch GetTouch(int id)
         {
+#if UNITY_EDITOR || UNITY_STANDALONE
+            return MakefakeTouchOnPc();
+#endif
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IPHONE || UNITY_IOS || UNITY_WP_8 || UNITY_WP_8_1 || UNITY_WEBGL)
             return Input.GetTouch(id);
+#endif
         }
 
         public static Touch GetTouchByFingerID(int fingerID)
         {
+#if UNITY_EDITOR || UNITY_STANDALONE
+            return MakefakeTouchOnPc();
+#endif
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IPHONE || UNITY_IOS || UNITY_WP_8 || UNITY_WP_8_1 || UNITY_WEBGL)
+
             for (int i = 0; i < Input.touchCount; i++)
             {
-                if (Input.GetTouch(i).fingerId == fingerID)
+                if(Input.GetTouch(i).fingerId == fingerID)
                     return Input.GetTouch(i);
             }
             return new Touch();
+#endif
         }
 
-        public static Touch MakefakeTouchOnPc()
-        {
+        public static Touch MakefakeTouchOnPc() {
             var touch = new Touch();
             touch.position = UnityEngine.Input.mousePosition;
             touch.phase =
